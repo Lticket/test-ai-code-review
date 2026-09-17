@@ -1,0 +1,19 @@
+{
+  "name": "test-ai-code-review",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Fixture app for harness-flow OCR AI first-review (alibaba open-code-review) integration testing",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
