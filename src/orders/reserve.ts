@@ -6,40 +6,20 @@ export interface Inventory {
 }
 
 /**
- * Baseline reservation checks stock then decrements under a simple mutex per SKU.
- * Feature-branch demos may regress this into a TOCTOU race.
+ * INTENTIONAL TOCTOU: check stock then decrement without locking.
+ * Concurrent callers can oversell.
  */
-const locks = new Map<string, Promise<void>>();
-
-async function withLock<T>(sku: string, fn: () => Promise<T>): Promise<T> {
-  const prev = locks.get(sku) ?? Promise.resolve();
-  let release!: () => void;
-  const gate = new Promise<void>((resolve) => {
-    release = resolve;
-  });
-  locks.set(
-    sku,
-    prev.then(() => gate),
-  );
-  await prev;
-  try {
-    return await fn();
-  } finally {
-    release();
-  }
-}
-
 export async function reserveItem(inventory: Inventory, sku: string, qty: number, logger: Logger): Promise<boolean> {
   if (qty <= 0) throw new Error("qty must be positive");
 
-  return withLock(sku, async () => {
-    const stock = await inventory.getStock(sku);
-    if (stock < qty) {
-      logger.info("reserve denied", { sku, stock, qty });
-      return false;
-    }
-    await inventory.decrement(sku, qty);
-    logger.info("reserve ok", { sku, qty });
-    return true;
-  });
+  const stock = await inventory.getStock(sku);
+  if (stock < qty) {
+    logger.info("reserve denied", { sku, stock, qty });
+    return false;
+  }
+
+  // race window here
+  await inventory.decrement(sku, qty);
+  logger.info("reserve ok", { sku, qty, observedStock: stock });
+  return true;
 }

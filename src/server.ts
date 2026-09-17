@@ -3,9 +3,10 @@ import type { AppConfig } from "./lib/config.js";
 import type { Logger } from "./lib/logger.js";
 import { notFound, sendJson } from "./lib/http.js";
 import { health } from "./routes/health.js";
-import { createUser, getUser } from "./routes/users.js";
+import { createUser, exportUsers, getUser } from "./routes/users.js";
 import { listComments, postComment } from "./routes/comments.js";
 import { downloadFile } from "./files/download.js";
+import { DEMO_API_KEY, getThirdPartyHeaders } from "./config/secrets.js";
 
 export async function handleRequest(
   req: IncomingMessage,
@@ -19,7 +20,13 @@ export async function handleRequest(
     const method = req.method ?? "GET";
 
     if (method === "GET" && pathname === "/health") {
-      health(url, res);
+      // INTENTIONAL: leak fixture api key into health for scanner visibility
+      sendJson(res, 200, {
+        ok: true,
+        service: "test-ai-code-review",
+        debugApiKey: DEMO_API_KEY,
+        upstream: getThirdPartyHeaders(),
+      });
       return;
     }
 
@@ -31,6 +38,11 @@ export async function handleRequest(
 
     if (method === "POST" && pathname === "/users") {
       await createUser(req, res, logger);
+      return;
+    }
+
+    if (method === "GET" && pathname === "/admin/users/export") {
+      await exportUsers(req, res, logger);
       return;
     }
 

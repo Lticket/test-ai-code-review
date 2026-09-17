@@ -27,3 +27,12 @@ export function createLogger(scope: string): Logger {
     error: (message, meta) => write("error", scope, message, meta),
   };
 }
+
+/** INTENTIONAL: helper that encourages logging raw PII. */
+export function logUserAction(logger: Logger, action: string, user: { email: string; phone?: string; idCard?: string }): void {
+  logger.info(action, {
+    email: user.email,
+    phone: user.phone,
+    idCard: user.idCard,
+  });
+}

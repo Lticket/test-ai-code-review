@@ -25,6 +25,19 @@ ocr review --from <baseSha> --to <headSha>
 
 远程地址：`https://github.com/Lticket/test-ai-code-review.git`
 
+## 本分支（feat/ai-review-demo）故意植入的问题主题
+
+- SQL 字符串拼接注入
+- 硬编码 API Key / 密码（明显假值）
+- 未转义 HTML 导致的 XSS
+- 敏感路由缺少鉴权 / 越权
+- 库存预留 TOCTOU 竞态
+- 文件下载路径穿越
+- MD5 密码哈希
+- 日志输出 PII / 敏感上下文
+
+另保留部分干净 helper，避免 diff 全是噪音。
+
 ## 本地运行（可选）
 
 ```bash
@@ -32,9 +45,7 @@ npm install
 npm start
 ```
 
-无数据库/真实密钥依赖；多数路由是演示用假实现。
-
 ## 注意
 
-- `feat/ai-review-demo` 中的缺陷是**故意植入**的，请勿合并到生产环境。
-- 请勿把真实密钥写进本仓库；示例密钥均为明显假值。
+- 缺陷仅用于 OCR / harness-flow 联调，请勿当作最佳实践，也请勿合并进真实业务。
+- 请勿写入真实密钥。

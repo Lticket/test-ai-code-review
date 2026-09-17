@@ -11,10 +11,16 @@ function escapeHtml(input: string): string {
     .replaceAll("'", "&#39;");
 }
 
+/**
+ * INTENTIONAL XSS: renders author/body without escaping.
+ * escapeHtml remains in the file as unused clean helper (noise reduction).
+ */
 export async function postComment(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const body = await readJsonBody<{ author?: string; body?: string }>(req);
-  const author = escapeHtml(requireNonEmpty(body.author, "author"));
-  const text = escapeHtml(requireNonEmpty(body.body, "body"));
+  const author = requireNonEmpty(body.author, "author");
+  const text = requireNonEmpty(body.body, "body");
+
+  void escapeHtml; // kept for contrast with the vulnerable path below
 
   const html = `<!doctype html><html><body><h1>Comment</h1><p><strong>${author}</strong>: ${text}</p></body></html>`;
   sendHtml(res, 201, html);
